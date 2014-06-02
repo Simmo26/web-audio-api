@@ -2609,7 +2609,7 @@ interface <dfn id="dfn-PannerNode">PannerNode</dfn> : AudioNode {
   <dt id="dfn-LINEAR_DISTANCE"><code>"linear"</code></dt>
     <dd><p>A linear distance model which calculates <em>distanceGain</em> according to: </p>
     <pre>
-1 - rolloffFactor * (distance - refDistance) / (maxDistance - refDistance)
+1 - rolloffFactor * (max(distance, refDistance) - refDistance) / (maxDistance - refDistance)
     </pre>
     </dd>
 </dl>
@@ -2617,7 +2617,7 @@ interface <dfn id="dfn-PannerNode">PannerNode</dfn> : AudioNode {
   <dt id="dfn-INVERSE_DISTANCE"><code>"inverse"</code></dt>
   <dd><p>An inverse distance model which calculates <em>distanceGain</em> according to: </p>
     <pre>
-refDistance / (refDistance + rolloffFactor * (distance - refDistance))
+refDistance / (refDistance + rolloffFactor * (max(distance, refDistance) - refDistance))
     </pre>
     </dd>
 </dl>
@@ -2625,7 +2625,7 @@ refDistance / (refDistance + rolloffFactor * (distance - refDistance))
   <dt id="dfn-EXPONENTIAL_DISTANCE"><code>"exponential"</code></dt>
   <dd><p>An exponential distance model which calculates <em>distanceGain</em> according to: </p>
   <pre>
-pow(distance / refDistance, -rolloffFactor)
+pow(max(distance, refDistance) / refDistance, -rolloffFactor)
   </pre>
     </dd>
 </dl>
