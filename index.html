@@ -11325,6 +11325,7 @@ interface AudioListener {
           algorithm</a>. This panning effect is common in positioning audio
           components in a stereo stream.
         </p>
+<!--
         <pre>
     numberOfInputs  : 1
     numberOfOutputs : 1
@@ -11333,23 +11334,93 @@ interface AudioListener {
     channelCountMode = "clamped-max";
     channelInterpretation = "speakers";
 </pre>
+-->
+        <table>
+          <tr>
+            <th>
+              Node Setting
+            </th>
+            <th>
+              Value
+            </th>
+            <th>
+              Notes
+            </th>
+          </tr>
+          <tr>
+            <td>
+              <a data-link-for="AudioNode">numberOfInputs</a>
+            </td>
+            <td>
+              1
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a data-link-for="AudioNode">numberOfOutputs</a>
+            </td>
+            <td>
+              1
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a data-link-for="AudioNode">channelCount</a>
+            </td>
+            <td>
+              2
+            </td>
+            <td>
+              Has <a>channelCount constraints</a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a data-link-for="AudioNode">channelCountMode</a>
+            </td>
+            <td>
+              "<a data-link-for="ChannelCountMode">clamped-max</a>"
+            </td>
+            <td>
+              Has <a>channelCountMode constraints</a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a data-link-for="AudioNode">tail-time</a> reference
+            </td>
+            <td>
+              No
+            </td>
+            <td>
+            </td>
+          </tr>
+        </table>
         <p>
           The input of this node is stereo (2 channels) and cannot be
           increased. Connections from nodes with fewer or more channels will be
           <a href="#channel-up-mixing-and-down-mixing">up-mixed or down-mixed
           appropriately</a>.
         </p>
+<!--
         <p>
           There are <a>channelCount constraints</a> and <a>channelCountMode
           constraints</a> for this node.
         </p>
+-->
         <p>
           The output of this node is hard-coded to stereo (2 channels) and
           cannot be configured.
         </p>
+<!--
         <p>
           This node has no <a>tail-time</a> reference.
         </p>
+-->
         <pre class="idl">
 [ Constructor (BaseAudioContext context, optional StereoPannerOptions options)]
 interface StereoPannerNode : AudioNode {
@@ -11442,9 +11513,64 @@ interface StereoPannerNode : AudioNode {
             </dt>
             <dd>
               The position of the input in the output's stereo image. -1
-              represents full left, +1 represents full right. Its default value
+              represents full left, +1 represents full right. <!--Its default value
               is 0, and its <a>nominal range</a> is [-1, 1]. This parameter is
-              <a>a-rate</a>.
+              <a>a-rate</a>.-->
+              <table>
+                <tr>
+                  <th>
+                    Parameter
+                  </th>
+                  <th>
+                    Value
+                  </th>
+                  <th>
+                    Notes
+                  </th>
+                </tr>
+                <tr>
+                  <td>
+                    <a data-link-for="AudioParam">defaultValue</a>
+                  </td>
+                  <td>
+                    0
+                  </td>
+                  <td>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <a data-link-for="AudioParam">minValue</a>
+                  </td>
+                  <td>
+                    -1
+                  </td>
+                  <td>
+                    Inclusive
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <a data-link-for="AudioParam">maxValue</a>
+                  </td>
+                  <td>
+                    1
+                  </td>
+                  <td>
+                    Inclusive
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    Rate
+                  </td>
+                  <td>
+                    <a>a-rate</a>
+                  </td>
+                  <td>
+                  </td>
+                </tr>
+              </table>
             </dd>
           </dl>
         </section>
