@@ -212,6 +212,7 @@
     div.node-info > table > tbody > tr > td {
       padding: 0.2em 0.6em;
       min-width: 150px;
+      border-top: 1px solid #ddd                      
     }
     div.node-info > table > tbody > tr > th {
       line-height: 2em;
@@ -234,6 +235,7 @@
     div.audioparam-info > table > tbody > tr > td {
       padding: 0.2em 0.6em;
       min-width: 150px;
+      border-top: 1px solid #ddd                      
     }
     div.audioparam-info > table > tbody > tr > th {
       line-height: 2em;
@@ -2211,7 +2213,6 @@ enum <dfn>AudioContextLatencyCategory</dfn> {
         </table>
         <pre class="idl">
 [Exposed=Window,
- Constructor,
  Constructor (optional AudioContextOptions contextOptions)]
 interface AudioContext : BaseAudioContext {
     readonly        attribute double baseLatency;
@@ -3704,10 +3705,10 @@ enum ChannelInterpretation {
               <dfn>speakers</dfn>
             </td>
             <td>
-              use <a href="#ChannelLayouts">up-down-mix equations for
-              mono/stereo/quad/5.1</a>. In cases where the number of channels
-              do not match any of these basic speaker layouts, revert to
-              "discrete".
+              use <a href="#UpMix-sub">up-mix equations</a> or <a href=
+              "#down-mix">down-mix equations</a>. In cases where the number of
+              channels do not match any of these basic speaker layouts, revert
+              to "<a data-link-for="ChannelInterpretation">discrete</a>".
             </td>
           </tr>
           <tr>
@@ -3974,13 +3975,25 @@ interface AudioNode : EventTarget {
                 with no inputs.
               </p>
               <p>
+                In addition, some nodes have additional
+                <dfn>channelInterpretation constraints</dfn> on the possible
+                values for the channel interpretation:
+              </p>
+              <dl>
+                <dt>
+                  <a>ChannelSplitterNode</a>
+                </dt>
+                <dd>
+                  The channel intepretation can not be changed from
+                  "<a data-link-for="ChannelInterpretation">discrete</a>" and a
+                  <span class="synchronous"><code>InvalidStateError</code>
+                  exception MUST be thrown for any attempt to change the
+                  value.</span>
+                </dd>
+              </dl>
+              <p>
                 See the <a href="#channel-up-mixing-and-down-mixing"></a>
                 section for more information on this attribute.
-              </p>
-              <p>
-                <span class="synchronous">When attempting to this attribute on
-                a <a>ChannelSplitterNode</a>, an <code>InvalidStateError</code>
-                MUST be thrown.</span>
               </p>
             </dd>
             <dt>
@@ -7619,6 +7632,19 @@ dictionary AudioBufferOptions {
           between 0 and the duration of the buffer.
         </p>
         <p>
+          The <a data-link-for="AudioBufferSourceNode">playbackRate</a> and
+          <a data-link-for="AudioBufferSourceNode">detune</a> attributes form a
+          <a>compound parameter</a>. They are used together to determine a
+          <dfn>computedPlaybackRate</dfn> value:
+        </p>
+        <pre class="highlight">
+computedPlaybackRate(t) = playbackRate(t) * pow(2, detune(t) / 1200)
+        </pre>
+        <p>
+          The <a>nominal range</a> for this <a>compound parameter</a> is
+          \((-\infty, \infty)\).
+        </p>
+        <p>
           <a>AudioBufferSourceNode</a>s are created with an internal boolean
           slot <code>[[buffer set]]</code>, initially set to false.
         </p>
@@ -7756,7 +7782,8 @@ interface AudioBufferSourceNode : AudioScheduledSourceNode {
               <p>
                 An additional parameter, in cents, to modulate the speed at
                 which is rendered the audio stream. This parameter is a
-                <a>compound parameter</a> with <code>playbackRate</code>.
+                <a>compound parameter</a> with <a>playbackRate</a> to form a
+                <a>computedPlaybackRate</a>.
               </p>
               <div class="audioparam-info">
                 <table>
@@ -7820,8 +7847,8 @@ interface AudioBufferSourceNode : AudioScheduledSourceNode {
             </dt>
             <dd>
               Indicates if the region of audio data designated by
-              <code>loopStart</code> and <code>loopEnd</code> should be played
-              continuously in a loop. The default value is <code>false</code>.
+              <a>loopStart</a> and <a>loopEnd</a> should be played continuously
+              in a loop. The default value is <code>false</code>.
             </dd>
             <dt>
               <code><dfn>loopEnd</dfn></code> of type <span class=
@@ -7829,13 +7856,12 @@ interface AudioBufferSourceNode : AudioScheduledSourceNode {
             </dt>
             <dd>
               An optional <a>playhead position</a> where looping should end if
-              the <code>loop</code> attribute is true. Its value is exclusive
-              of the content of the loop. Its default <code>value</code> is 0,
-              and it may usefully be set to any value between 0 and the
-              duration of the buffer. If <code>loopEnd</code> is less than or
-              equal to 0, or if <code>loopEnd</code> is greater than the
-              duration of the buffer, looping will end at the end of the
-              buffer.
+              the <a>loop</a> attribute is true. Its value is exclusive of the
+              content of the loop. Its default <code>value</code> is 0, and it
+              may usefully be set to any value between 0 and the duration of
+              the buffer. If <a>loopEnd</a> is less than or equal to 0, or if
+              <a>loopEnd</a> is greater than the duration of the buffer,
+              looping will end at the end of the buffer.
             </dd>
             <dt>
               <code><dfn>loopStart</dfn></code> of type <span class=
@@ -7843,12 +7869,12 @@ interface AudioBufferSourceNode : AudioScheduledSourceNode {
             </dt>
             <dd>
               An optional <a>playhead position</a> where looping should begin
-              if the <code>loop</code> attribute is true. Its default
+              if the <a>loop</a> attribute is true. Its default
               <code>value</code> is 0, and it may usefully be set to any value
-              between 0 and the duration of the buffer. If
-              <code>loopStart</code> is less than 0, looping will begin at 0.
-              If <code>loopStart</code> is greater than the duration of the
-              buffer, looping will begin at the end of the buffer.
+              between 0 and the duration of the buffer. If <a>loopStart</a> is
+              less than 0, looping will begin at 0. If <a>loopStart</a> is
+              greater than the duration of the buffer, looping will begin at
+              the end of the buffer.
             </dd>
             <dt>
               <code><dfn>playbackRate</dfn></code> of type <span class=
@@ -7857,7 +7883,8 @@ interface AudioBufferSourceNode : AudioScheduledSourceNode {
             <dd>
               <p>
                 The speed at which to render the audio stream. This is a
-                <a>compound parameter</a> with <code>detune</code>.
+                <a>compound parameter</a> with <a>detune</a> to form a
+                <a>computedPlaybackRate</a>.
               </p>
               <div class="audioparam-info">
                 <table>
@@ -8019,10 +8046,9 @@ interface AudioBufferSourceNode : AudioScheduledSourceNode {
                     beginning of the buffer. <span class="synchronous">A
                     RangeError exception MUST be thrown if <code>offset</code>
                     is negative.</span> If <code>offset</code> is greater than
-                    <code>loopEnd</code>, playback will begin at
-                    <code>loopEnd</code> (and immediately loop to
-                    <code>loopStart</code>). <code>offset</code> is silently
-                    clamped to [0, <code>duration</code>], when
+                    <a>loopEnd</a>, playback will begin at <a>loopEnd</a> (and
+                    immediately loop to <a>loopStart</a>). <code>offset</code>
+                    is silently clamped to [0, <code>duration</code>], when
                     <code>startTime</code> is reached, where
                     <code>duration</code> is the value of the
                     <code>duration</code> attribute of the
@@ -8241,12 +8267,14 @@ dictionary AudioBufferSourceOptions {
             normative requirements.</em>
           </p>
           <p>
-            Setting the <code>loop</code> attribute to true causes playback of
-            the region of the buffer defined by the endpoints
-            <code>loopStart</code> and <code>loopEnd</code> to continue
-            indefinitely, once any part of the looped region has been played.
-            While <code>loop</code> remains true, looped playback will continue
-            until one of the following occurs:
+            Setting the <a data-link-for="AudioBufferSourceNode">loop</a>
+            attribute to true causes playback of the region of the buffer
+            defined by the endpoints <a data-link-for=
+            "AudioBufferSourceNode">loopStart</a> and <a data-link-for=
+            "AudioBufferSourceNode">loopEnd</a> to continue indefinitely, once
+            any part of the looped region has been played. While
+            <a data-link-for="AudioBufferSourceNode">loop</a> remains true,
+            looped playback will continue until one of the following occurs:
           </p>
           <ul>
             <li>
@@ -8262,27 +8290,31 @@ dictionary AudioBufferSourceOptions {
           </ul>
           <p>
             The body of the loop is considered to occupy a region from
-            <code>loopStart</code> up to, but not including,
-            <code>loopEnd</code>. The direction of playback of the looped
-            region respects the sign of the node's playback rate. For positive
-            playback rates, looping occurs from <code>loopStart</code> to
-            <code>loopEnd</code>; for negative rates, looping occurs from
-            <code>loopEnd</code> to <code>loopStart</code>.
+            <a data-link-for="AudioBufferSourceNode">loopStart</a> up to, but
+            not including, <a data-link-for=
+            "AudioBufferSourceNode">loopEnd</a>. The direction of playback of
+            the looped region respects the sign of the node's playback rate.
+            For positive playback rates, looping occurs from <a data-link-for=
+            "AudioBufferSourceNode">loopStart</a> to <a data-link-for=
+            "AudioBufferSourceNode">loopEnd</a>; for negative rates, looping
+            occurs from <a data-link-for="AudioBufferSourceNode">loopEnd</a> to
+            <a data-link-for="AudioBufferSourceNode">loopStart</a>.
           </p>
           <p>
             Looping does not affect the interpretation of the
             <code>offset</code> argument of <a data-link-for=
-            "AudioScheduledSourceNode"><code>start()</code></a>. Playback
-            always starts at the requested offset, and looping only begins once
-            the body of the loop is encountered during playback.
+            "AudioBufferSourceNode">start</a><code>()</code>. Playback always
+            starts at the requested offset, and looping only begins once the
+            body of the loop is encountered during playback.
           </p>
           <p>
             The effective loop start and end points are required to lie within
             the range of zero and the buffer duration, as specified in the
-            algorithm below. <code>loopEnd</code> is further constrained to be
-            at or after <code>loopStart</code>. If any of these constraints are
-            violated, the loop is considered to include the entire buffer
-            contents.
+            algorithm below. <a data-link-for=
+            "AudioBufferSourceNode">loopEnd</a> is further constrained to be at
+            or after <a data-link-for="AudioBufferSourceNode">loopStart</a>. If
+            any of these constraints are violated, the loop is considered to
+            include the entire buffer contents.
           </p>
           <p>
             Loop endpoints have subsample accuracy. When endpoints do not fall
@@ -8298,18 +8330,19 @@ dictionary AudioBufferSourceOptions {
             which follows.
           </p>
           <p>
-            The default values of the <code>loopStart</code> and
-            <code>loopEnd</code> attributes are both 0. Since a
-            <code>loopEnd</code> value of zero is equivalent to the length of
-            the buffer, the default endpoints cause the entire buffer to be
-            included in the loop.
+            The default values of the <a data-link-for=
+            "AudioBufferSourceNode">loopStart</a> and <a data-link-for=
+            "AudioBufferSourceNode">loopEnd</a> attributes are both 0. Since a
+            <a data-link-for="AudioBufferSourceNode">loopEnd</a> value of zero
+            is equivalent to the length of the buffer, the default endpoints
+            cause the entire buffer to be included in the loop.
           </p>
           <p>
             Note that the values of the loop endpoints are expressed as time
             offsets in terms of the sample rate of the buffer, meaning that
-            these values are independent of the node's
-            <code>playbackRate</code> parameter which can vary dynamically
-            during the course of playback.
+            these values are independent of the node's <a data-link-for=
+            "AudioBufferSourceNode">playbackRate</a> parameter which can vary
+            dynamically during the course of playback.
           </p>
         </section>
         <section>
@@ -9423,6 +9456,75 @@ interface AudioWorkletGlobalScope : WorkletGlobalScope {
             node can be connected with other built-in <a>AudioNode</a>s to form
             an audio graph.
           </p>
+          <div class="node-info">
+            <table>
+              <tr>
+                <th>
+                  Property
+                </th>
+                <th>
+                  Value
+                </th>
+                <th>
+                  Notes
+                </th>
+              </tr>
+              <tr>
+                <td>
+                  <a data-link-for="AudioNode">numberOfInputs</a>
+                </td>
+                <td>
+                  1
+                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                  <a data-link-for="AudioNode">numberOfOutputs</a>
+                </td>
+                <td>
+                  1
+                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                  <a data-link-for="AudioNode">channelCount</a>
+                </td>
+                <td>
+                  2
+                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                  <a data-link-for="AudioNode">channelCountMode</a>
+                </td>
+                <td>
+                  "<a data-link-for="channelCountMode">max</a>"
+                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                  <a data-link-for="AudioNode">channelInterpretation</a>
+                </td>
+                <td>
+                  "<a data-link-for="channelInterpretation">speakers</a>"
+                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                  <a>tail-time</a> reference
+                </td>
+                <td></td>
+                <td>
+                  Any <a>tail-time</a> is handled by the node itself
+                </td>
+              </tr>
+            </table>
+          </div>
           <p>
             Every <a>AudioWorkletNode</a> has an associated <dfn>processor
             reference</dfn>, initially null, which refers to the
@@ -9660,6 +9762,7 @@ interface AudioWorkletNode : AudioNode {
 dictionary AudioWorkletNodeOptions : AudioNodeOptions {
              unsigned long             numberOfInputs = 1;
              unsigned long             numberOfOutputs = 1;
+             sequence&lt;unsigned long&gt;    outputChannelCount;
              record&lt;DOMString, double&gt;  parameterData;
 };
             </pre>
@@ -9688,6 +9791,24 @@ dictionary AudioWorkletNodeOptions : AudioNodeOptions {
                   <a data-link-for="AudioNode">numberOfOutputs</a> attribute.
                 </dd>
                 <dt>
+                  <code><dfn>outputChannelCount</dfn></code> of type
+                  <span class="idlAttrType"><code>sequence&lt;unsigned
+                  long&gt;</code></span>
+                </dt>
+                <dd>
+                  This array is used to configure the number of channels in
+                  each output. For example, <code>outputChannelCount: [n,
+                  m]</code> specifies the number of channels in the first
+                  output to <code>n</code> and the second output to
+                  <code>m</code> respectively. <code>IndexSizeError</code> MUST
+                  be thrown if the length of sequence does not match
+                  <a data-link-for=
+                  "AudioWorkletNodeOptions">numberOfOutputs</a>. A
+                  <code>NotSupportedError</code> exception MUST be thrown if a
+                  channel count is not in the valid range of AudioNode's
+                  <a data-link-for="AudioNode">channelCount</a>.
+                </dd>
+                <dt>
                   <code><dfn>parameterData</dfn></code> of type <span class=
                   "idlAttrType"><code>record&lt;DOMString,
                   double&gt;</code></span>
@@ -9700,6 +9821,52 @@ dictionary AudioWorkletNodeOptions : AudioNodeOptions {
                   the node, it is ignored.
                 </dd>
               </dl>
+            </section>
+            <section>
+              <h3>
+                Configuring Channels with <a>AudioWorkletNodeOptions</a>
+              </h3>
+              <p>
+                With a combination of <a data-link-for=
+                "AudioWorkletNodeOptions">numberOfInputs</a>, <a data-link-for=
+                "AudioWorkletNodeOptions">numberOfOutputs</a> and
+                <a data-link-for=
+                "AudioWorkletNodeOptions">outputChannelCount</a>, various
+                channel configurations can be achieved.
+              </p>
+              <ol>
+                <li>
+                  <a data-link-for="AudioWorkletNodeOptions">numberOfInputs</a>
+                  = 0, <a data-link-for=
+                  "AudioWorkletNodeOptions">numberOfOutputs</a> = 0
+                  <ul>
+                    <li>
+                      <code>NotSupportedError</code> MUST be thrown by the
+                      constructor.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <a data-link-for="AudioWorkletNodeOptions">numberOfInputs</a>
+                  = 1, <a data-link-for=
+                  "AudioWorkletNodeOptions">numberOfOutputs</a> = 1
+                  <ul>
+                    <li>If <a data-link-for=
+                    "AudioWorkletNodeOptions">outputChannelCount</a> is
+                    unspecified, the output channel count will match
+                    <a>computedNumberOfChannels</a> from the input.
+                    </li>
+                  </ul>
+                </li>
+                <li>All other cases
+                  <ul>
+                    <li>If <a data-link-for=
+                    "AudioWorkletNodeOptions">outputChannelCount</a> is
+                    unspecified, it will be mono for all outputs.
+                    </li>
+                  </ul>
+                </li>
+              </ol>
             </section>
           </section>
         </section>
@@ -9817,8 +9984,9 @@ class MyProcessor extends AudioWorkletProcessor {
                   by the user agent. <code>inputs[n][m]</code> is a
                   <code>Float32Array</code> of audio samples for the
                   <code>m</code>th channel of <code>n</code>th input. While the
-                  number of inputs is fixed at the construction, the number of
-                  channels can be changed dynamically.
+                  number of inputs is fixed at construction, the number of
+                  channels can be changed dynamically based on
+                  <a>computedNumberOfChannels</a>.
                 </p>
                 <p>
                   If no connections exist to the <code>n</code>th input of the
@@ -9835,9 +10003,10 @@ class MyProcessor extends AudioWorkletProcessor {
                 The output audio buffer that is to be consumed by the user
                 agent. <code>outputs[n][m]</code> is a
                 <code>Float32Array</code> object containing the audio samples
-                for <code>m</code>th channel of <code>n</code>th output. While
-                the number of outputs is fixed at the construction, the number
-                of channels can be changed dynamically.
+                for <code>m</code>th channel of <code>n</code>th output. The
+                number of channels in the output will match
+                <a>computedNumberOfChannels</a> only when the node has single
+                output.
               </li>
               <li>
                 <code>parameters</code> of type <code>Object</code><br>
@@ -11310,7 +11479,7 @@ interface PannerNode : AudioNode {
             <dd>
               <p>
                 Sets the x coordinate position of the audio source in a 3D
-                Cartesian system. \infty)\).
+                Cartesian system.
               </p>
               <div class="audioparam-info">
                 <table>
@@ -11565,8 +11734,19 @@ interface PannerNode : AudioNode {
             <dd>
               <p>
                 This method is DEPRECATED. It is equivalent to setting
-                <code>orientationX</code>, <code>orientationY</code>, and
-                <code>orientationZ</code> AudioParams directly.
+                <a>orientationX</a>.<a data-link-for="AudioParam">value</a>,
+                <a>orientationY</a>.<a data-link-for="AudioParam">value</a>,
+                and <a>orientationZ</a>.<a data-link-for="AudioParam">value</a>
+                attribute directly, with the <code>x</code>, <code>y</code> and
+                <code>z</code> parameters, respectively.
+              </p>
+              <p>
+                Consequently, if any of the <a>orientationX</a>,
+                <a>orientationY</a>, and <a>orientationZ</a> <a>AudioParam</a>s
+                have an automation curve set using <a data-link-for=
+                "AudioParam">setValueCurveAtTime</a><code>()</code> at the time
+                this method is called, a <code>NotSupportedError</code> MUST be
+                thrown.
               </p>
               <p>
                 Describes which direction the audio source is pointing in the
@@ -11656,8 +11836,19 @@ interface PannerNode : AudioNode {
             <dd>
               <p>
                 This method is DEPRECATED. It is equivalent to setting
-                <code>positionX</code>, <code>positionY</code>, and
-                <code>positionZ</code> AudioParams directly.
+                <a>positionX</a>.<a data-link-for="AudioParam">value</a>,
+                <a>positionY</a>.<a data-link-for="AudioParam">value</a>, and
+                <a>positionZ</a>.<a data-link-for="AudioParam">value</a>
+                attribute directly with the <code>x</code>, <code>y</code> and
+                <code>z</code> parameters, respectively.
+              </p>
+              <p>
+                Consequently, if any of the <a>positionX</a>, <a>positionY</a>,
+                and <a>positionZ</a> <a>AudioParam</a>s have an automation
+                curve set using <a data-link-for=
+                "AudioParam">setValueCurveAtTime</a><code>()</code> at the time
+                this method is called, a <code>NotSupportedError</code> MUST be
+                thrown.
               </p>
               <p>
                 Sets the position of the audio source relative to the
@@ -11931,11 +12122,9 @@ dictionary PannerOptions : AudioNodeOptions {
           the listener. In simple human terms, the <code>forward</code> vector
           represents which direction the person's nose is pointing. The
           <code>up</code> vector represents the direction the top of a person's
-          head is pointing. These values are expected to be linearly
-          independent (at right angles to each other), and unpredictable
-          behavior may result if they are not. For normative requirements of
-          how these values are to be interpreted, see the
-          <a>Spatialization/Panning</a> section.
+          head is pointing. These two vectors are expected to be linearly
+          independent. For normative requirements of how these values are to be
+          interpreted, see the <a>Spatialization/Panning</a> section.
         </p>
         <pre class="idl">
 [Exposed=Window]
@@ -12565,13 +12754,24 @@ interface AudioListener {
             <dd>
               <p>
                 This method is DEPRECATED. It is equivalent to setting
-                <code>orientationX.value</code>,
-                <code>orientationY.value</code>,
-                <code>orientationZ.value</code>, <code>upX.value</code>,
-                <code>upY.value</code>, and <code>upZ.value</code> directly
+                <a>forwardX</a>.<a data-link-for="AudioParam">value</a>,
+                <a>forwardY</a>.<a data-link-for="AudioParam">value</a>,
+                <a>forwardZ</a>.<a data-link-for="AudioParam">value</a>,
+                <a>upX</a>.<a data-link-for="AudioParam">value</a>,
+                <a>upY</a>.<a data-link-for="AudioParam">value</a>, and
+                <a>upZ</a>.<a data-link-for="AudioParam">value</a> directly
                 with the given <code>x</code>, <code>y</code>, <code>z</code>,
                 <code>xUp</code>, <code>yUp</code>, and <code>zUp</code>
                 values, respectively.
+              </p>
+              <p>
+                Consequently, if any of the <a>forwardX</a>, <a>forwardY</a>,
+                <a>forwardZ</a>, <a>upX</a>, <a>upY</a> and <a>upZ</a>
+                <a>AudioParam</a>s have an automation curve set using
+                <a data-link-for=
+                "AudioParam">setValueCurveAtTime</a><code>()</code> at the time
+                this method is called, a <code>NotSupportedError</code> MUST be
+                thrown.
               </p>
               <p>
                 Describes which direction the listener is pointing in the 3D
@@ -12579,10 +12779,9 @@ interface AudioListener {
                 <b>up</b> vector are provided. In simple human terms, the
                 <b>front</b> vector represents which direction the person's
                 nose is pointing. The <b>up</b> vector represents the direction
-                the top of a person's head is pointing. These values are
-                expected to be linearly independent (at right angles to each
-                other). For normative requirements of how these values are to
-                be interpreted, see the <a href=
+                the top of a person's head is pointing. These two vectors are
+                expected to be linearly independent. For normative requirements
+                of how these values are to be interpreted, see the <a href=
                 "#Spatialization">spatialization section</a>.
               </p>
               <p>
@@ -12714,10 +12913,20 @@ interface AudioListener {
             <dd>
               <p>
                 This method is DEPRECATED. It is equivalent to setting
-                <code>positionX.value</code>, <code>positionY.value</code>, and
-                <code>positionZ.value</code> directly with the given
-                <code>x</code>, <code>y</code>, and <code>z</code> values,
-                respectively.
+                <a>positionX</a>.<a data-link-for="AudioParam">value</a>,
+                <a>positionY</a>.<a data-link-for="AudioParam">value</a>, and
+                <a>positionZ</a>.<a data-link-for="AudioParam">value</a>
+                directly with the given <code>x</code>, <code>y</code>, and
+                <code>z</code> values, respectively.
+              </p>
+              <p>
+                Consequently, any of the <a>positionX</a>, <a>positionY</a>,
+                and <a>positionZ</a> <a>AudioParam</a>s for this
+                <a>AudioListenerNode</a> have an automation curve set using
+                <a data-link-for=
+                "AudioParam">setValueCurveAtTime</a><code>()</code> at the time
+                this method is called, a <code>NotSupportedError</code> MUST be
+                thrown.
               </p>
               <p>
                 Sets the position of the listener in a 3D cartesian coordinate
@@ -13838,7 +14047,7 @@ interface AnalyserNode : AudioNode {
             </dt>
             <dd>
               <p>
-                Copies the current down-mixed time-domain (waveform) data into
+                Copies the <a>current time-domain data</a> (waveform data) into
                 the passed unsigned byte array. If the array has fewer elements
                 than the value of <a data-link-for=
                 "AnalyserNode"><code>fftSize</code></a>, the excess elements
@@ -13973,7 +14182,7 @@ interface AnalyserNode : AudioNode {
             </dt>
             <dd>
               <p>
-                Copies the current down-mixed time-domain (waveform) data into
+                Copies the <a>current time-domain data</a> (waveform data) into
                 the passed floating-point array. If the array has fewer
                 elements than the value of <a data-link-for=
                 "AnalyserNode"><code>fftSize</code></a>, the excess elements
@@ -14084,6 +14293,24 @@ dictionary AnalyserOptions : AudioNodeOptions {
             </dl>
           </section>
         </section>
+        <section>
+          <h3>
+            Time-Domain Down-Mixing
+          </h3>
+          <p>
+            When the <dfn>current time-domain data</dfn> are computed, the
+            input signal must be <a href=
+            "#channel-up-mixing-and-down-mixing">down-mixed</a> to mono as if
+            <a data-link-for="AudioNode">channelCount</a> is 1,
+            <a data-link-for="AudioNode">channelCountMode</a> is
+            "<a data-link-for="ChannelCountMode">max</a>" and <a data-link-for=
+            "AudioNode">channelInterpretation</a> is "<a data-link-for=
+            "ChannelInterpretation">speakers</a>". This is independent of the
+            settings for the <a>AnalyserNode</a> itself. The most recent
+            <a data-link-for="AnalyserNode">fftSize</a> frames are used for the
+            down-mixing operation.
+          </p>
+        </section>
         <section data-link-for="AnalyserNode">
           <h3>
             FFT Windowing and smoothing over time
@@ -14091,17 +14318,7 @@ dictionary AnalyserOptions : AudioNodeOptions {
           data</dfn> are computed, the following operations are to be
           performed:
           <ol>
-            <li>
-              <a href="#channel-up-mixing-and-down-mixing">Down-mix</a> all
-              channels of the time domain input data to mono assuming a
-              <a data-link-for="AudioNode">channelCount</a> of 1,
-              <a data-link-for="AudioNode">channelCountMode</a> of
-              "<a data-link-for="ChannelCountMode">max</a>" and
-              <a data-link-for="AudioNode">channelInterpretation</a> of
-              "<a data-link-for="ChannelInterpretation">speakers</a>". This is
-              independent of the settings for the <a>AnalyserNode</a> itself.
-              The most recent <a data-link-for="AnalyserNode">fftSize</a>
-              frames are used for the down-mixing operation.
+            <li>Compute the <a>current time-domain data</a>.
             </li>
             <li>
               <a href="#blackman-window">Apply a Blackman window</a> to the
@@ -14297,7 +14514,9 @@ dictionary AnalyserOptions : AudioNodeOptions {
               <td>
                 "<a data-link-for="channelInterpretation">discrete</a>"
               </td>
-              <td></td>
+              <td>
+                Has <a>channelInterpretation constraints</a>
+              </td>
             </tr>
             <tr>
               <td>
@@ -14571,8 +14790,7 @@ dictionary ChannelSplitterOptions : AudioNodeOptions {
           simply combines channels in the order that they are input.
         </p>
         <figure>
-          <img alt="channel merger" src="images/channel-merger.png" width="498"
-          height="402">
+          <img alt="channel merger" src="images/channel-merger.svg">
           <figcaption>
             A diagram of ChannelMerger
           </figcaption>
@@ -17551,14 +17769,14 @@ dictionary WaveShaperOptions : AudioNodeOptions {
         <p>
           Both <code>frequency</code> and <code>detune</code> are <a>a-rate</a>
           parameters, and form a <a>compound parameter</a>. They are used
-          together to determine a <em>computedFrequency</em> value:
+          together to determine a <dfn>computedOscFrequency</dfn> value:
         </p>
         <pre>
-  computedFrequency(t) = frequency(t) * pow(2, detune(t) / 1200)
+  computedOscFrequency(t) = frequency(t) * pow(2, detune(t) / 1200)
 </pre>
         <p>
           The OscillatorNode's instantaneous phase at each time is the definite
-          time integral of <em>computedFrequency</em>, assuming a phase angle
+          time integral of <a>computedOscFrequency</a>, assuming a phase angle
           of zero at the node's exact start time. Its <a>nominal range</a> is
           [-<a>Nyquist frequency</a>, <a>Nyquist frequency</a>].
         </p>
@@ -17757,8 +17975,10 @@ interface OscillatorNode : AudioScheduledSourceNode {
             <dd>
               <p>
                 A detuning value (in cents) which will offset the
-                <a><code>frequency</code></a> by the given amount. It forms a
-                <a>compound parameter</a> with <code>frequency</code>.
+                <a><code>frequency</code></a> by the given amount. Its default
+                <code>value</code> is 0. This parameter is <a>a-rate</a>. It
+                forms a <a>compound parameter</a> with <code>frequency</code>
+                to form the <a>computedOscFrequency</a>.
               </p>
               <div class="audioparam-info">
                 <table>
@@ -17822,8 +18042,11 @@ interface OscillatorNode : AudioScheduledSourceNode {
             </dt>
             <dd>
               <p>
-                The frequency (in Hertz) of the periodic waveform. It forms a
-                <a>compound parameter</a> with <code>detune</code>.
+                The frequency (in Hertz) of the periodic waveform. Its default
+                <code>value</code> is 440. This parameter is <a>a-rate</a>. It
+                forms a <a>compound parameter</a> with <code>detune</code> to
+                form the <a>computedOscFrequency</a>. Its <a>nominal range</a>
+                is [-<a>Nyquist frequency</a>, <a>Nyquist frequency</a>].
               </p>
               <div class="audioparam-info">
                 <table>
@@ -18142,7 +18365,7 @@ interface PeriodicWave {
                 <li>If <var>options</var> has not been passed in, let
                 <var>[[\real]]</var> and <var>[[\imag]]</var> be two internal
                 slots of type <code>Float32Array</code> and length 2. Set the
-                second element of the <var>[[\imag]]</var> array be 1.
+                second element of the <var>[[\imag]]</var> array to 1.
                   <div class="note">
                     When setting this <a>PeriodicWave</a> on an
                     <a>OscillatorNode</a>, this is equivalent to using the
@@ -18151,15 +18374,15 @@ interface PeriodicWave {
                 </li>
                 <li>Otherwise, let <var>[[\real]]</var> and
                 <var>[[\imag]]</var> be two internal slots of type
-                <code>Float32Array</code>, of length both equal to the maximum
-                length of the <var>real</var> and <var>imag</var> of the
-                attributes of the <a>PeriodicWaveOptions</a> passed in.
-                  <a href="https://heycam.github.io/webidl/#dfn-get-buffer-source-copy">
+                <code>Float32Array</code>, both of length equal to the maximum
+                length of the <var>real</var> and <var>imag</var> attributes of
+                the <a>PeriodicWaveOptions</a> passed in. <a href=
+                "https://heycam.github.io/webidl/#dfn-get-buffer-source-copy">
                   Make a copy</a> of those arrays into their respective
                   internal slots.
                 </li>
                 <li>Let [[\normalize]] be an internal slot of the
-                <a>PeriodicWave</a> the is initialized to the inverse of the
+                <a>PeriodicWave</a> that is initialized to the inverse of the
                 <var>disableNormalization</var> attribute of the
                 <a>PeriodicWaveConstraints</a> on the
                 <a>PeriodicWaveOptions</a>.
@@ -20263,7 +20486,7 @@ Quad up-mix:
           XACT Audio, etc. have this ability.
         </p>
         <p>
-          Using an <a><code>PannerNode</code></a>, an audio stream can be
+          Using a <a><code>PannerNode</code></a>, an audio stream can be
           spatialized or positioned in space relative to an
           <a><code>AudioListener</code></a>. An
           <a><code>AudioContext</code></a> will contain a single
@@ -20318,20 +20541,32 @@ Quad up-mix:
   }
 
   // Align axes.
-  let listenerFront =
-    new Vec3(listener.orientationX, listener.orientationY, listener.orientationZ);
+  let listenerForward =
+    new Vec3(listener.forwardX, listener.forwardY, listener.forwardZ);
   let listenerUp =
     new Vec3(listener.upX, listener.upY, listener.upZ);
-  let listenerRight = listenerFront.cross(listenerUp).normalize();
-  let listenerFrontNorm = listenerFront.normalize();
-  let up = listenerRight.cross(listenerFrontNorm);
+  let listenerRight = listenerForward.cross(listenerUp);
+
+  if (listenerRight.magnitude == 0) {
+    // Handle the case where listener's 'up' and 'forward' vectors are linearly dependent,
+    // in which case 'right' cannot be determined
+    azimuth = 0;
+    elevation = 0;
+    return;
+  }
+  
+  // Determine a unit vector orthogonal to listener's right, forward
+  let listenerRightNorm = listenerRight.normalize();
+  let listenerForwardNorm = listenerForward.normalize();
+  let up = listenerRightNorm.cross(listenerForwardNorm);
+
   let upProjection = sourceListener.dot(up);
   let projectedSource = sourceListener.diff(up.scale(upProjection)).normalize();
 
-  azimuth = 180 * Math.acos(projectedSource.dot(listenerRight)) / PI;
+  azimuth = 180 * Math.acos(projectedSource.dot(listenerRightNorm)) / Math.PI;
 
   // Source in front or behind the listener.
-  let frontBack = projectedSource.dot(listenerFrontNorm);
+  let frontBack = projectedSource.dot(listenerForwardNorm);
   if (frontBack &lt; 0)
       azimuth = 360 - azimuth;
 
@@ -20341,7 +20576,7 @@ Quad up-mix:
   else
       azimuth = 450 - azimuth;
 
-  elevation = 90 - 180 * Math.acos(sourceListener.dot(up)) / PI;
+  elevation = 90 - 180 * Math.acos(sourceListener.dot(up)) / Math.PI;
 
   if (elevation &gt; 90)
       elevation = 180 - elevation;
