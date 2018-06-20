@@ -12,6 +12,13 @@ install:
   - pip install --editable $PWD/bikeshed
   - bikeshed update
 
+env:
+  global:
+  - ENCRYPTION_LABEL: "046f1b5dae10"
+  - COMMIT_AUTHOR_EMAIL: "public-audio@w3.org"
+  - SSH_REPO: "git@github.com:rtoy/web-audio-api.git"
+  - TARGET_BRANCH: "gh-pages"
+
 script:
   # Run bikeshed and save the output.  You can use this output as is
   # to update expected-errs.txt.
@@ -22,17 +29,7 @@ script:
   # Do the same for the expected errors and compare the two.  Any
   # differences need to be fixed.
   - sed 's;^LINE [0-9]*:;LINE:;' expected-errs.txt | sed -e '$a\' | diff -u - actual-errs.txt
-
-env:
-  global:
-  - ENCRYPTION_LABEL: "046f1b5dae10"
-  - COMMIT_AUTHOR_EMAIL: "public-audio@w3.org"
-  - SSH_REPO: "git@github.com:rtoy/web-audio-api.git"
-  - TARGET_BRANCH: "gh-pages"
-
-deploy:
-  on:
-    branch: master
+  # If we get here, we can try deploying now.
   - ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
   - ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
   - ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
