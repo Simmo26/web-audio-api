@@ -23,9 +23,23 @@ script:
   # differences need to be fixed.
   - sed 's;^LINE [0-9]*:;LINE:;' expected-errs.txt | sed -e '$a\' | diff -u - actual-errs.txt
 
+env:
+  global:
+  - ENCRYPTION_LABEL: "046f1b5dae10"
+  - COMMIT_AUTHOR_EMAIL: "public-audio@w3.org"
+  - SSH_REPO: "git@github.com:rtoy/web-audio-api.git"
+  - TARGET_BRANCH: "gh-pages"
+
 deploy:
-  provider: pages
-  skip-cleanup: true
-  keep-history: true
   on:
     branch: master
+  - ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
+  - ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
+  - ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
+  - ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
+  - openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in deploy_key.enc -out deploy_key -d
+  - chmod 600 .deploy_key
+  - eval `ssh-agent -s`
+  - ssh-add deploy_key
+  - # Now that we're all set up, we can push.
+  - git push $SSH_REPO $TARGET_BRANCH
