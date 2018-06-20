@@ -46,5 +46,5 @@ script:
   - git config user.name "Travis CI"
   - git config user.email "$COMMIT_AUTHOR_EMAIL"
   - git add index.html
-  - git commit -m "Deploy to GitHub Pages: ${SHA}"
+  - git commit -m "Deploy to GitHub Pages"
   - git push $SSH_REPO $TARGET_BRANCH
