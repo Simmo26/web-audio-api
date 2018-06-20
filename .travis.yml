@@ -23,10 +23,6 @@ script:
   # differences need to be fixed.
   - sed 's;^LINE [0-9]*:;LINE:;' expected-errs.txt | sed -e '$a\' | diff -u - actual-errs.txt
 
-branches:
-  only:
-    - gh-pages
-
 deploy:
   provider: pages
   skip-cleanup: true
