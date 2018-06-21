@@ -2,22 +2,11 @@ language: python
 sudo: false
 python:
   - "2.7"
-
-before_install:
-  openssl aes-256-cbc -K $encrypted_046f1b5dae10_key -iv $encrypted_046f1b5dae10_iv -in deploy_key.enc -out deploy_key -d
-
 install:
   # Setup bikeshed. See https://tabatkins.github.io/bikeshed/#install-linux
   - git clone https://github.com/tabatkins/bikeshed.git
   - pip install --editable $PWD/bikeshed
   - bikeshed update
-
-env:
-  global:
-  - ENCRYPTION_LABEL: "046f1b5dae10"
-  - COMMIT_AUTHOR_EMAIL: "public-audio@w3.org"
-  - SSH_REPO: "git@github.com:rtoy/web-audio-api.git"
-  - TARGET_BRANCH: "gh-pages"
 
 script:
   # Run bikeshed and save the output.  You can use this output as is
@@ -29,22 +18,7 @@ script:
   # Do the same for the expected errors and compare the two.  Any
   # differences need to be fixed.
   - sed 's;^LINE [0-9]*:;LINE:;' expected-errs.txt | sed -e '$a\' | diff -u - actual-errs.txt
-  # If we get here, we can try deploying now.
-  - ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
-  - ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
-  - ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
-  - ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
-  - openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in deploy_key.enc -out deploy_key -d
-  - chmod 600 deploy_key
-  - eval `ssh-agent -s`
-  - ssh-add deploy_key
-  # Now that we're all set up, we can push.
-  - SHA=`git rev-parse --verify HEAD`
-  - echo $SHA $PWD
-  - git fetch origin gh-pages
-  - git checkout gh-pages
-  - git config user.name "Travis CI"
-  - git config user.email "$COMMIT_AUTHOR_EMAIL"
-  - git add index.html
-  - git commit -m "Deploy to GitHub Pages"
-  - git push origin $TARGET_BRANCH
+
+branches:
+  only:
+    - gh-pages
