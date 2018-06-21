@@ -47,4 +47,4 @@ script:
   - git config user.email "$COMMIT_AUTHOR_EMAIL"
   - git add index.html
   - git commit -m "Deploy to GitHub Pages"
-  - git push $SSH_REPO $TARGET_BRANCH
+  - git push origin $TARGET_BRANCH
